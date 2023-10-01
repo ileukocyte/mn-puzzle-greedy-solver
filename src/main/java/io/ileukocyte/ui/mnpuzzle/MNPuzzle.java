@@ -20,6 +20,13 @@ public record MNPuzzle(
         }
 
         public State copy() {
+            /*var newArray = new int[array.length][array[0].length];
+
+            for (int i = 0; i < array.length; i++) {
+                System.arraycopy(array[i], 0, newArray[i], 0, array[0].length);
+            }
+
+            return new State(newArray);*/
             return new State(Arrays.stream(array).map(int[]::clone).toArray(int[][]::new));
         }
 

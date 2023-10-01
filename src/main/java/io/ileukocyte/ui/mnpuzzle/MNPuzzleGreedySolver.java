@@ -1,7 +1,6 @@
 package io.ileukocyte.ui.mnpuzzle;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MNPuzzleGreedySolver {
     private final MNPuzzle puzzle;
@@ -23,6 +22,7 @@ public class MNPuzzleGreedySolver {
         var currentNode = new Node(
                 initialState,
                 Objects.requireNonNull(heuristics) == HeuristicFunction.OUT_OF_PLACE_COUNT ? cellsOutOfPlace(initialState) : totalDistance(initialState),
+                null,
                 null
         );
         var nodeQueue = new PriorityQueue<>(Comparator.comparingInt(Node::heuristicValue));
@@ -56,7 +56,8 @@ public class MNPuzzleGreedySolver {
                 var node = new Node(
                         stateCopy,
                         heuristics == HeuristicFunction.OUT_OF_PLACE_COUNT ? cellsOutOfPlace(stateCopy) : totalDistance(stateCopy),
-                        currentNode
+                        currentNode,
+                        Operator.UP
                 );
 
                 if (usedStates.stream().noneMatch(s -> s.equals(node.currentState()))) {
@@ -74,7 +75,8 @@ public class MNPuzzleGreedySolver {
                 var node = new Node(
                         stateCopy,
                         heuristics == HeuristicFunction.OUT_OF_PLACE_COUNT ? cellsOutOfPlace(stateCopy) : totalDistance(stateCopy),
-                        currentNode
+                        currentNode,
+                        Operator.DOWN
                 );
 
                 if (usedStates.stream().noneMatch(s -> s.equals(node.currentState()))) {
@@ -92,7 +94,8 @@ public class MNPuzzleGreedySolver {
                 var node = new Node(
                         stateCopy,
                         heuristics == HeuristicFunction.OUT_OF_PLACE_COUNT ? cellsOutOfPlace(stateCopy) : totalDistance(stateCopy),
-                        currentNode
+                        currentNode,
+                        Operator.LEFT
                 );
 
                 if (usedStates.stream().noneMatch(s -> s.equals(node.currentState()))) {
@@ -110,7 +113,8 @@ public class MNPuzzleGreedySolver {
                 var node = new Node(
                         stateCopy,
                         heuristics == HeuristicFunction.OUT_OF_PLACE_COUNT ? cellsOutOfPlace(stateCopy) : totalDistance(stateCopy),
-                        currentNode
+                        currentNode,
+                        Operator.RIGHT
                 );
 
                 if (usedStates.stream().noneMatch(s -> s.equals(node.currentState()))) {
@@ -208,6 +212,10 @@ public class MNPuzzleGreedySolver {
         return this;
     }
 
+    public enum Operator {
+        UP, DOWN, LEFT, RIGHT
+    }
+
     public enum HeuristicFunction {
         OUT_OF_PLACE_COUNT, TOTAL_DISTANCE
     }
@@ -215,10 +223,11 @@ public class MNPuzzleGreedySolver {
     public record Node(
             MNPuzzle.State currentState,
             int heuristicValue,
-            Node parent
+            Node parent,
+            Operator lastOperator
     ) {}
 
-    public record Result(boolean isSuccessful, int iterationCount, int nodeCount, Node finalNode) {
+    public record Result(boolean isSolved, int iterationCount, int nodeCount, Node finalNode) {
         public Set<Node> retrievePath() {
             var nodeSet = new LinkedHashSet<Node>();
             var currentNode = finalNode;
@@ -237,13 +246,35 @@ public class MNPuzzleGreedySolver {
         }
 
         public String printablePath() {
-            return retrievePath().stream().map(Record::toString).collect(Collectors.joining("\n|\n"));
+            var builder = new StringBuilder();
+
+            for (var node : retrievePath()) {
+                if (node.lastOperator() != null) {
+                    builder.append("\n|\n");
+                    builder.append(node.lastOperator());
+                    builder.append("\n|\n");
+                }
+
+                builder.append(node);
+            }
+
+            return builder.toString();
         }
 
         public String printableSteps() {
-            return retrievePath().stream()
-                    .map(n -> n.currentState().toString())
-                    .collect(Collectors.joining("\n|\n"));
+            var builder = new StringBuilder();
+
+            for (var node : retrievePath()) {
+                if (node.lastOperator() != null) {
+                    builder.append("\n|\n");
+                    builder.append(node.lastOperator());
+                    builder.append("\n|\n");
+                }
+
+                builder.append(node.currentState());
+            }
+
+            return builder.toString();
         }
     }
 }

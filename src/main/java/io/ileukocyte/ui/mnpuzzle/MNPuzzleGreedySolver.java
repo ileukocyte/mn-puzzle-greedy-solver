@@ -19,6 +19,8 @@ public class MNPuzzleGreedySolver {
         var iterationCount = 0;
         var nodeCount = 0;
 
+        var usedStates = new HashSet<String>();
+
         var currentNode = new Node(
                 initialState,
                 Objects.requireNonNull(heuristics) == HeuristicFunction.OUT_OF_PLACE_COUNT ? cellsOutOfPlace(initialState) : totalDistance(initialState),
@@ -26,7 +28,6 @@ public class MNPuzzleGreedySolver {
                 null
         );
         var nodeQueue = new PriorityQueue<>(Comparator.comparingInt(Node::heuristicValue));
-        var usedStates = new HashSet<MNPuzzle.State>();
 
         nodeQueue.add(currentNode);
 
@@ -41,7 +42,7 @@ public class MNPuzzleGreedySolver {
                 break;
             }
 
-            usedStates.add(initialState);
+            usedStates.add(currentNode.currentState().toString());
 
             var emptyCoords = getEmptyCellIndex(currentNode.currentState());
             var r = emptyCoords[0];
@@ -50,8 +51,7 @@ public class MNPuzzleGreedySolver {
             if (r > 0) {
                 var stateCopy = currentNode.currentState().copy();
 
-                stateCopy.toArray()[r][c] = stateCopy.toArray()[r - 1][c];
-                stateCopy.toArray()[r - 1][c] = 0;
+                swap(stateCopy, r, c, r - 1, c);
 
                 var node = new Node(
                         stateCopy,
@@ -60,7 +60,7 @@ public class MNPuzzleGreedySolver {
                         Operator.UP
                 );
 
-                if (usedStates.stream().noneMatch(s -> s.equals(node.currentState()))) {
+                if (!usedStates.contains(node.currentState().toString())) {
                     nodeQueue.add(node);
                     nodeCount++;
                 }
@@ -69,8 +69,7 @@ public class MNPuzzleGreedySolver {
             if (r < puzzle.rows() - 1) {
                 var stateCopy = currentNode.currentState().copy();
 
-                stateCopy.toArray()[r][c] = stateCopy.toArray()[r + 1][c];
-                stateCopy.toArray()[r + 1][c] = 0;
+                swap(stateCopy, r, c, r + 1, c);
 
                 var node = new Node(
                         stateCopy,
@@ -79,7 +78,7 @@ public class MNPuzzleGreedySolver {
                         Operator.DOWN
                 );
 
-                if (usedStates.stream().noneMatch(s -> s.equals(node.currentState()))) {
+                if (!usedStates.contains(node.currentState().toString())) {
                     nodeQueue.add(node);
                     nodeCount++;
                 }
@@ -88,8 +87,7 @@ public class MNPuzzleGreedySolver {
             if (c > 0) {
                 var stateCopy = currentNode.currentState().copy();
 
-                stateCopy.toArray()[r][c] = stateCopy.toArray()[r][c - 1];
-                stateCopy.toArray()[r][c - 1] = 0;
+                swap(stateCopy, r, c, r, c - 1);
 
                 var node = new Node(
                         stateCopy,
@@ -98,7 +96,7 @@ public class MNPuzzleGreedySolver {
                         Operator.LEFT
                 );
 
-                if (usedStates.stream().noneMatch(s -> s.equals(node.currentState()))) {
+                if (!usedStates.contains(node.currentState().toString())) {
                     nodeQueue.add(node);
                     nodeCount++;
                 }
@@ -107,8 +105,7 @@ public class MNPuzzleGreedySolver {
             if (c < puzzle.columns() - 1) {
                 var stateCopy = currentNode.currentState().copy();
 
-                stateCopy.toArray()[r][c] = stateCopy.toArray()[r][c + 1];
-                stateCopy.toArray()[r][c + 1] = 0;
+                swap(stateCopy, r, c, r, c + 1);
 
                 var node = new Node(
                         stateCopy,
@@ -117,7 +114,7 @@ public class MNPuzzleGreedySolver {
                         Operator.RIGHT
                 );
 
-                if (usedStates.stream().noneMatch(s -> s.equals(node.currentState()))) {
+                if (!usedStates.contains(node.currentState().toString())) {
                     nodeQueue.add(node);
                     nodeCount++;
                 }
@@ -175,7 +172,7 @@ public class MNPuzzleGreedySolver {
         return totalDistance;
     }
 
-    public int[] getEmptyCellIndex(MNPuzzle.State state) {
+    private int[] getEmptyCellIndex(MNPuzzle.State state) {
         var coords = new int[2];
 
         for (int i = 0; i < puzzle.rows(); i++) {
@@ -188,6 +185,13 @@ public class MNPuzzleGreedySolver {
         }
 
         return coords;
+    }
+
+    private void swap(MNPuzzle.State state, int r1, int c1, int r2, int c2) {
+        var temp = state.toArray()[r1][c1];
+
+        state.toArray()[r1][c1] = state.toArray()[r2][c2];
+        state.toArray()[r2][c2] = temp;
     }
 
     public MNPuzzle getPuzzle() {
@@ -228,6 +232,9 @@ public class MNPuzzleGreedySolver {
     ) {}
 
     public record Result(boolean isSolved, int iterationCount, int nodeCount, Node finalNode) {
+        /**
+         * @return The solution's node path
+         */
         public Set<Node> retrievePath() {
             var nodeSet = new LinkedHashSet<Node>();
             var currentNode = finalNode;
@@ -245,7 +252,10 @@ public class MNPuzzleGreedySolver {
             return new LinkedHashSet<>(nodeList);
         }
 
-        public String printablePath() {
+        /**
+         * @return The string containing all the solution nodes and the in-between operators
+         */
+        public String getPrintablePath() {
             var builder = new StringBuilder();
 
             for (var node : retrievePath()) {
@@ -261,7 +271,10 @@ public class MNPuzzleGreedySolver {
             return builder.toString();
         }
 
-        public String printableSteps() {
+        /**
+         * @return The string containing all the solution states and the in-between operators
+         */
+        public String getPrintableSteps() {
             var builder = new StringBuilder();
 
             for (var node : retrievePath()) {
@@ -271,7 +284,7 @@ public class MNPuzzleGreedySolver {
                     builder.append("\n|\n");
                 }
 
-                builder.append(node.currentState());
+                builder.append(node.currentState().toPuzzleBoardString());
             }
 
             return builder.toString();

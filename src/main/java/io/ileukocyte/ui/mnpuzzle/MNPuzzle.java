@@ -34,6 +34,8 @@ public record MNPuzzle(int rows, int columns, State initialState, State finalSta
             this(array, true);
         }
 
+        // checkSize is used for optimization
+        // so that the array won't be checked again when copied via the internal function (State#copy)
         private State(int[][] array, boolean checkSize) {
             if (checkSize) {
                 if (array.length == 0) {

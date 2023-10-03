@@ -52,7 +52,7 @@ public class MNPuzzleGreedySolver {
             if (r > 0) {
                 var stateCopy = currentNode.currentState().copy();
 
-                swap(stateCopy, r, c, r - 1, c);
+                move(stateCopy, r, c, Operator.UP);
 
                 var node = new Node(
                         stateCopy,
@@ -71,7 +71,7 @@ public class MNPuzzleGreedySolver {
             if (r < puzzle.rows() - 1) {
                 var stateCopy = currentNode.currentState().copy();
 
-                swap(stateCopy, r, c, r + 1, c);
+                move(stateCopy, r, c, Operator.DOWN);
 
                 var node = new Node(
                         stateCopy,
@@ -90,7 +90,7 @@ public class MNPuzzleGreedySolver {
             if (c > 0) {
                 var stateCopy = currentNode.currentState().copy();
 
-                swap(stateCopy, r, c, r, c - 1);
+                move(stateCopy, r, c, Operator.LEFT);
 
                 var node = new Node(
                         stateCopy,
@@ -109,7 +109,7 @@ public class MNPuzzleGreedySolver {
             if (c < puzzle.columns() - 1) {
                 var stateCopy = currentNode.currentState().copy();
 
-                swap(stateCopy, r, c, r, c + 1);
+                move(stateCopy, r, c, Operator.RIGHT);
 
                 var node = new Node(
                         stateCopy,
@@ -198,6 +198,10 @@ public class MNPuzzleGreedySolver {
         state.toArray()[r2][c2] = temp;
     }
 
+    private void move(MNPuzzle.State state, int r, int c, Operator operator) {
+        swap(state, r, c, r + operator.getX(), c + operator.getY());
+    }
+
     public MNPuzzle getPuzzle() {
         return puzzle;
     }
@@ -221,7 +225,26 @@ public class MNPuzzleGreedySolver {
     }
 
     public enum Operator {
-        UP, DOWN, LEFT, RIGHT
+        UP(-1, 0),
+        DOWN(1, 0),
+        LEFT(0, -1),
+        RIGHT(0, 1);
+
+        private final int x;
+        private final int y;
+
+        Operator(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
     }
 
     public enum HeuristicFunction {

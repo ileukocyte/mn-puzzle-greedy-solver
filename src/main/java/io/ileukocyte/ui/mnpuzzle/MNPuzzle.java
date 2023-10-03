@@ -18,21 +18,56 @@ public record MNPuzzle(int rows, int columns, State initialState, State finalSta
         if (!Arrays.equals(initialValues, finalValues)) {
             throw new IllegalArgumentException("Both the initial and final states must consist of the same elements!");
         }
+
+        if (rows != initialState.getRows() || rows != finalState.getRows()
+                || columns != initialState.getColumns() || columns != finalState.getColumns()) {
+            throw new IllegalArgumentException("The state dimensions must be consistent!");
+        }
     }
 
     public static class State {
         private final int[][] array;
+        private final int rows;
+        private final int columns;
 
-        public State(int[][] rawArray) {
-            this.array = rawArray;
+        public State(int[][] array) {
+            this(array, true);
+        }
+
+        private State(int[][] array, boolean checkSize) {
+            if (checkSize) {
+                if (array.length == 0) {
+                    throw new IllegalArgumentException("The provided array must not be empty!");
+                }
+
+                var referenceValue = array[0].length;
+
+                for (var subarray : array) {
+                    if (subarray.length != referenceValue) {
+                        throw new IllegalArgumentException("The array sizes must be consistent!");
+                    }
+                }
+            }
+
+            this.array = array;
+            this.rows = array.length;
+            this.columns = array[0].length;
         }
 
         public int[][] toArray() {
             return array;
         }
 
+        public int getRows() {
+            return rows;
+        }
+
+        public int getColumns() {
+            return columns;
+        }
+
         public State copy() {
-            return new State(Arrays.stream(array).map(int[]::clone).toArray(int[][]::new));
+            return new State(Arrays.stream(array).map(int[]::clone).toArray(int[][]::new), false);
         }
 
         public String toPuzzleBoardString() {

@@ -48,6 +48,7 @@ public class MNPuzzleGreedySolver {
             var r = emptyCoords[0];
             var c = emptyCoords[1];
 
+            // The empty cell can be moved up
             if (r > 0) {
                 var stateCopy = currentNode.currentState().copy();
 
@@ -66,6 +67,7 @@ public class MNPuzzleGreedySolver {
                 }
             }
 
+            // The empty cell can be moved down
             if (r < puzzle.rows() - 1) {
                 var stateCopy = currentNode.currentState().copy();
 
@@ -84,6 +86,7 @@ public class MNPuzzleGreedySolver {
                 }
             }
 
+            // The empty cell can be moved left
             if (c > 0) {
                 var stateCopy = currentNode.currentState().copy();
 
@@ -102,6 +105,7 @@ public class MNPuzzleGreedySolver {
                 }
             }
 
+            // The empty cell can be moved right
             if (c < puzzle.columns() - 1) {
                 var stateCopy = currentNode.currentState().copy();
 
@@ -145,7 +149,7 @@ public class MNPuzzleGreedySolver {
         return wrongPositionCount;
     }
 
-    // Heuristic function #2 (Manhattan Distance)
+    // Heuristic function #2 (Manhattan distance)
     protected int totalDistance(MNPuzzle.State currentState) {
         var totalDistance = 0;
 

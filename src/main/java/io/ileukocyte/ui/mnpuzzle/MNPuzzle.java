@@ -4,23 +4,23 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public record MNPuzzle(int rows, int columns, State initialState, State finalState) {
+public record MNPuzzle(int rows, int columns, State initialState, State targetState) {
     public MNPuzzle {
         var initialValues = Arrays.stream(initialState.toArray())
                 .flatMapToInt(IntStream::of)
                 .sorted()
                 .toArray();
-        var finalValues = Arrays.stream(finalState.toArray())
+        var targetValues = Arrays.stream(targetState.toArray())
                 .flatMapToInt(IntStream::of)
                 .sorted()
                 .toArray();
 
-        if (!Arrays.equals(initialValues, finalValues)) {
-            throw new IllegalArgumentException("Both the initial and final states must consist of the same elements!");
+        if (!Arrays.equals(initialValues, targetValues)) {
+            throw new IllegalArgumentException("Both the initial and target states must consist of the same elements!");
         }
 
-        if (rows != initialState.getRows() || rows != finalState.getRows()
-                || columns != initialState.getColumns() || columns != finalState.getColumns()) {
+        if (rows != initialState.getRows() || rows != targetState.getRows()
+                || columns != initialState.getColumns() || columns != targetState.getColumns()) {
             throw new IllegalArgumentException("The state dimensions must be consistent!");
         }
     }

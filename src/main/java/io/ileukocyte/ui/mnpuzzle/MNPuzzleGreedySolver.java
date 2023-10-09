@@ -5,19 +5,21 @@ import java.util.*;
 public class MNPuzzleGreedySolver {
     private final MNPuzzle puzzle;
     private final MNPuzzle.State initialState;
-    private final MNPuzzle.State finalState;
+    private final MNPuzzle.State targetState;
 
     private int iterationLimit = 0;
 
     public MNPuzzleGreedySolver(MNPuzzle puzzle) {
         this.puzzle = puzzle;
         this.initialState = puzzle.initialState();
-        this.finalState = puzzle.finalState();
+        this.targetState = puzzle.targetState();
     }
 
     public Result solve(HeuristicFunction heuristics) {
         var iterationCount = 0;
         var nodeCount = 0;
+
+        var now = System.nanoTime();
 
         var usedStates = new HashSet<String>();
 
@@ -125,10 +127,13 @@ public class MNPuzzleGreedySolver {
             }
         }
 
+        now = System.nanoTime() - now;
+
         return new Result(
-                currentNode.currentState().equals(finalState),
+                currentNode.currentState().equals(targetState),
                 iterationCount,
                 nodeCount,
+                now,
                 currentNode
         );
     }
@@ -140,7 +145,7 @@ public class MNPuzzleGreedySolver {
         for (int i = 0; i < puzzle.rows(); i++) {
             for (int j = 0; j < puzzle.columns(); j++) {
                 if (currentState.toArray()[i][j] != 0
-                        && currentState.toArray()[i][j] != finalState.toArray()[i][j]) {
+                        && currentState.toArray()[i][j] != targetState.toArray()[i][j]) {
                     wrongPositionCount++;
                 }
             }
@@ -154,22 +159,22 @@ public class MNPuzzleGreedySolver {
         var totalDistance = 0;
 
         var currentCoordsByValue = new int[puzzle.rows() * puzzle.columns()][2];
-        var finalCoordsByValue = new int[puzzle.rows() * puzzle.columns()][2];
+        var targetCoordsByValue = new int[puzzle.rows() * puzzle.columns()][2];
 
         for (int i = 0; i < puzzle.rows(); i++) {
             for (int j = 0; j < puzzle.columns(); j++) {
                 currentCoordsByValue[currentState.toArray()[i][j]] = new int[] {i, j};
-                finalCoordsByValue[finalState.toArray()[i][j]] = new int[] {i, j};
+                targetCoordsByValue[targetState.toArray()[i][j]] = new int[] {i, j};
             }
         }
 
         // The loop starts with 1 in order to exclude the empty cell
         for (int i = 1; i < puzzle.rows() * puzzle.columns(); i++) {
             var currentCoords = currentCoordsByValue[i];
-            var finalCoords = finalCoordsByValue[i];
+            var targetCoords = targetCoordsByValue[i];
 
             for (int j = 0; j < 2; j++) {
-                totalDistance += Math.abs(finalCoords[j] - currentCoords[j]);
+                totalDistance += Math.abs(targetCoords[j] - currentCoords[j]);
             }
         }
 
@@ -210,8 +215,8 @@ public class MNPuzzleGreedySolver {
         return initialState;
     }
 
-    public MNPuzzle.State getFinalState() {
-        return finalState;
+    public MNPuzzle.State getTargetState() {
+        return targetState;
     }
 
     public int getIterationLimit() {
@@ -238,6 +243,8 @@ public class MNPuzzleGreedySolver {
             this.y = y;
         }
 
+        // ...
+
         public int getX() {
             return x;
         }
@@ -258,7 +265,13 @@ public class MNPuzzleGreedySolver {
             Operator lastOperator
     ) {}
 
-    public record Result(boolean isSolved, int iterationCount, int nodeCount, Node finalNode) {
+    public record Result(
+            boolean isSolved,
+            int iterationCount,
+            int nodeCount,
+            long timeNs,
+            Node finalNode
+    ) {
         /**
          * @return The solution's node path
          */

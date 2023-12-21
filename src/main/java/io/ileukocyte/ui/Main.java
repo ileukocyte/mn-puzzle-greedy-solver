@@ -64,7 +64,7 @@ public class Main {
                     System.out.println(outOfPlaceResult);
                     System.out.println(totalDistanceResult);
 
-                    //System.out.println(outOfPlaceResult.getPrintableSteps());
+                    System.out.println(outOfPlaceResult.getPrintableSteps());
                     //System.out.println(totalDistanceResult.getPrintableSteps());
                 }
             }

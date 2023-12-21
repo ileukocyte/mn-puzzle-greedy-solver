@@ -243,8 +243,6 @@ public class MNPuzzleGreedySolver {
             this.y = y;
         }
 
-        // ...
-
         public int getX() {
             return x;
         }
